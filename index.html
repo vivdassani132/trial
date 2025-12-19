@@ -37,16 +37,15 @@
             animation: {
               'float': 'float 6s ease-in-out infinite',
               'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'marquee': 'marquee 14s linear infinite',
-              'draw': 'draw 4s ease-in-out infinite',
-              'cursor-move': 'cursor-move 4s ease-in-out infinite',
+              'marquee': 'marquee 12s linear infinite',
+              'draw': 'draw 3s ease-in-out infinite',
+              'cursor-move': 'cursor-move 3s ease-in-out infinite',
               'blink': 'blink 1s step-end infinite',
-              'scan': 'scan 2s linear infinite',
-              'highlight': 'highlight 2s ease-in-out infinite',
-              'card-drop': 'card-drop 3s ease-in-out infinite',
-              'box-pulse': 'box-pulse 3s ease-in-out infinite',
-              'shock': 'shock 3s linear infinite',
-              'subtle-drift': 'subtle-drift 15s ease-in-out infinite alternate',
+              'scan': 'scan 1.5s linear infinite',
+              'highlight': 'highlight 1.5s ease-in-out infinite',
+              'card-drop': 'card-drop 2.5s ease-in-out infinite',
+              'shock': 'shock 2.5s linear infinite',
+              'subtle-drift': 'subtle-drift 12s ease-in-out infinite alternate',
             },
             keyframes: {
               float: {
@@ -88,11 +87,6 @@
                 '60%': { transform: 'translateY(160px) scale(0.4)', opacity: '0' },
                 '100%': { transform: 'translateY(160px) scale(0.4)', opacity: '0' }
               },
-              'box-pulse': {
-                 '0%, 50%': { transform: 'scale(1)', borderColor: 'rgba(0,0,0,0.1)' },
-                 '60%': { transform: 'scale(1.05)', borderColor: 'rgba(0,0,0,0.3)' },
-                 '70%': { transform: 'scale(1)', borderColor: 'rgba(0,0,0,0.1)' },
-              },
               shock: {
                 '0%': { strokeDashoffset: '1000', opacity: '0' },
                 '5%': { opacity: '1' },
@@ -113,29 +107,12 @@
       body {
         background-color: #FFFFFF;
         color: #18181B;
+        margin: 0;
         -webkit-font-smoothing: antialiased;
-      }
-      
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #FFFFFF;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #D4D4D8;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #A1A1AA;
-      }
-      .glass-card {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(0, 0, 0, 0.05);
+        overflow-x: hidden;
       }
       .blur-fade-word {
-        animation: blur-fade-in 0.8s ease-out forwards;
+        animation: blur-fade-in 0.6s ease-out forwards;
         opacity: 0;
         filter: blur(10px);
         display: inline-block;
@@ -148,50 +125,29 @@
           transform: translateY(0);
         }
       }
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      .scroll-reveal {
-          transition: all 1000ms ease-out;
-      }
-      .scroll-reveal.hidden-state {
-          opacity: 0;
-          transform: translateY(32px);
-          filter: blur(4px);
-      }
-      .scroll-reveal.visible-state {
-          opacity: 1;
-          transform: translateY(0);
-          filter: blur(0);
+      .dropdown-ease {
+        transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        transition-duration: 500ms;
+        transition-property: transform, opacity, visibility;
       }
       .mask-linear-gradient {
         mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
         -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
       }
-
-      /* Premium dropdown transition */
-      .dropdown-ease {
-        transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-        transition-duration: 400ms;
-        transition-property: transform, opacity, visibility;
-      }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.561.0"
-  }
-}
-</script>
-</head>
-<body class="min-h-screen bg-background text-text-main font-sans selection:bg-primary/20">
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@^19.2.3",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "lucide-react": "https://esm.sh/lucide-react@^0.561.0"
+      }
+    }
+    </script>
+  </head>
+  <body class="min-h-screen bg-background text-text-main font-sans selection:bg-primary/20">
     <div id="root"></div>
-</body>
+    <script type="module" src="./index.tsx"></script>
+  </body>
 </html>

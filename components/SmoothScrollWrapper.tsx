@@ -13,7 +13,6 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, res
     });
     const rafId = useRef<number>(null);
 
-    // Reset scroll when key changes (route change)
     useEffect(() => {
         state.current.current = 0;
         state.current.target = 0;
@@ -31,41 +30,27 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, res
              if (content) document.body.style.height = `${content.scrollHeight}px`;
         };
         
-        // Initial measurement
         updateBodyHeight();
-        
         const resizeObserver = new ResizeObserver(() => updateBodyHeight());
         resizeObserver.observe(content);
 
         const onWheel = (e: WheelEvent) => {
             e.preventDefault();
-            const speedFactor = 0.75; // Increased speed (75% of native)
+            const speedFactor = 0.95; // Snappy scroll speed
             const maxScroll = document.body.scrollHeight - window.innerHeight;
             
             state.current.target += e.deltaY * speedFactor;
             state.current.target = Math.max(0, Math.min(state.current.target, maxScroll));
         };
 
-        const onScroll = () => {
-             // If window scroll deviates significantly from our internal current, 
-             // it means external input (scrollbar drag, keyboard), so we sync.
-             if (Math.abs(window.scrollY - state.current.current) > 10) {
-                 state.current.target = window.scrollY;
-             }
-        };
-
         const loop = () => {
-            const ease = 0.08; 
+            const ease = 0.12; // Snappier snapping (20% faster than 0.1)
             const diff = state.current.target - state.current.current;
             const delta = diff * ease;
 
             if (Math.abs(diff) > 0.1) {
                 state.current.current += delta;
-                
-                // Update transform
                 content.style.transform = `translate3d(0, -${state.current.current}px, 0)`;
-                
-                // Sync window scroll (but avoid thrashing if close enough)
                 if (Math.abs(window.scrollY - state.current.current) > 1) {
                      window.scrollTo(0, state.current.current);
                 }
@@ -75,12 +60,10 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, res
         };
 
         window.addEventListener('wheel', onWheel, { passive: false });
-        window.addEventListener('scroll', onScroll);
         rafId.current = requestAnimationFrame(loop);
 
         return () => {
             window.removeEventListener('wheel', onWheel);
-            window.removeEventListener('scroll', onScroll);
             if (rafId.current) cancelAnimationFrame(rafId.current);
             resizeObserver.disconnect();
             document.body.style.height = '';
