@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface SmoothScrollProps {
     children: React.ReactNode;
@@ -7,6 +7,7 @@ interface SmoothScrollProps {
 
 export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, resetKey }) => {
     const contentRef = useRef<HTMLDivElement>(null);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
     const state = useRef({
         current: 0,
         target: 0,
@@ -14,15 +15,31 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, res
     const rafId = useRef<number>(null);
 
     useEffect(() => {
+        // Detect if the device has a touch screen or is likely mobile
+        const checkTouch = () => {
+            setIsTouchDevice(
+                'ontouchstart' in window || 
+                navigator.maxTouchPoints > 0 || 
+                window.matchMedia('(pointer: coarse)').matches
+            );
+        };
+        checkTouch();
+    }, []);
+
+    useEffect(() => {
+        if (isTouchDevice) return;
+
         state.current.current = 0;
         state.current.target = 0;
         window.scrollTo(0, 0);
         if (contentRef.current) {
             contentRef.current.style.transform = 'translate3d(0, 0, 0)';
         }
-    }, [resetKey]);
+    }, [resetKey, isTouchDevice]);
 
     useEffect(() => {
+        if (isTouchDevice) return;
+        
         const content = contentRef.current;
         if (!content) return;
 
@@ -36,7 +53,7 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, res
 
         const onWheel = (e: WheelEvent) => {
             e.preventDefault();
-            const speedFactor = 0.95; // Snappy scroll speed
+            const speedFactor = 0.95; 
             const maxScroll = document.body.scrollHeight - window.innerHeight;
             
             state.current.target += e.deltaY * speedFactor;
@@ -44,15 +61,16 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, res
         };
 
         const loop = () => {
-            const ease = 0.12; // Snappier snapping (20% faster than 0.1)
+            const ease = 0.12; 
             const diff = state.current.target - state.current.current;
             const delta = diff * ease;
 
             if (Math.abs(diff) > 0.1) {
                 state.current.current += delta;
                 content.style.transform = `translate3d(0, -${state.current.current}px, 0)`;
+                // Sync the actual scroll position for things like scroll listeners
                 if (Math.abs(window.scrollY - state.current.current) > 1) {
-                     window.scrollTo(0, state.current.current);
+                     window.scrollTo({ top: state.current.current, behavior: 'auto' });
                 }
             }
 
@@ -68,7 +86,12 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, res
             resizeObserver.disconnect();
             document.body.style.height = '';
         };
-    }, []);
+    }, [isTouchDevice]);
+
+    if (isTouchDevice) {
+        // Return standard layout for mobile/touch devices to use native browser scrolling
+        return <div className="w-full relative">{children}</div>;
+    }
 
     return (
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
