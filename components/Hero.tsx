@@ -27,9 +27,9 @@ export const Hero: React.FC = () => {
   const slogan = "The Only App Your Home Needs.";
 
   return (
-    <div className="relative min-h-screen pt-24 md:pt-32 pb-12 md:pb-20 overflow-hidden bg-transparent">
-      {/* Background Glow - Subtle for light mode */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[1000px] h-[500px] bg-glow-gradient opacity-60 pointer-events-none z-0"></div>
+    <div className="relative min-h-screen pt-24 md:pt-32 pb-12 md:pb-20 overflow-hidden bg-white">
+      {/* Background decoration - subtle and white */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-glow-gradient opacity-40 pointer-events-none z-0"></div>
       
       <Container className="relative z-10 flex flex-col items-start text-left">
         <h1 className="max-w-6xl mb-6 md:mb-8 block text-text-main">
@@ -63,7 +63,6 @@ export const Hero: React.FC = () => {
 
       {/* 3D Mockup Container */}
       <div className="w-full relative z-10 -mt-12 md:-mt-10 perspective-[2000px] pointer-events-none">
-        {/* Scale wrapper for mobile to prevent overflow */}
         <div className="w-full flex justify-center md:block transform scale-[0.28] sm:scale-50 md:scale-100 origin-top h-[220px] sm:h-[400px] md:h-auto">
             <HeroMockup 
                 style={{
@@ -73,8 +72,7 @@ export const Hero: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom fade for smooth transition */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent z-20"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white to-transparent z-20"></div>
     </div>
   );
 };

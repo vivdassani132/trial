@@ -8,7 +8,6 @@ import { Footer } from './components/Footer';
 import { Pricing } from './components/Pricing';
 import { Customers } from './components/Customers';
 import { About } from './components/About';
-import { SmoothScrollWrapper } from './components/SmoothScrollWrapper';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -34,14 +33,12 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-text-main font-sans selection:bg-primary/30">
+    <div className="min-h-screen bg-white text-text-main font-sans selection:bg-primary/30">
       <Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
-      <SmoothScrollWrapper resetKey={currentPage}>
-          <main className={currentPage !== 'home' ? 'pt-20' : ''}>
-            {renderPage()}
-          </main>
-          <Footer onNavigate={setCurrentPage} />
-      </SmoothScrollWrapper>
+      <main className={currentPage !== 'home' ? 'pt-16' : ''}>
+        {renderPage()}
+      </main>
+      <Footer onNavigate={setCurrentPage} />
     </div>
   );
 }

@@ -5,99 +5,125 @@ interface SmoothScrollProps {
     resetKey?: string;
 }
 
+/**
+ * A robust smooth scroll implementation that leverages the native browser scrollbar.
+ * It creates a 'ghost' height on the body and transforms the content based on scroll position.
+ */
 export const SmoothScrollWrapper: React.FC<SmoothScrollProps> = ({ children, resetKey }) => {
     const contentRef = useRef<HTMLDivElement>(null);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
+    
+    // Internal state for interpolation
     const state = useRef({
         current: 0,
         target: 0,
     });
+    
     const rafId = useRef<number>(null);
 
+    // Initial touch device detection - fallback to native for all touch devices
     useEffect(() => {
-        // Detect if the device has a touch screen or is likely mobile
         const checkTouch = () => {
-            setIsTouchDevice(
-                'ontouchstart' in window || 
-                navigator.maxTouchPoints > 0 || 
+            const hasTouch = (
+                'ontouchstart' in window ||
+                navigator.maxTouchPoints > 0 ||
                 window.matchMedia('(pointer: coarse)').matches
             );
+            setIsTouchDevice(hasTouch);
         };
         checkTouch();
+        window.addEventListener('resize', checkTouch);
+        return () => window.removeEventListener('resize', checkTouch);
     }, []);
 
+    // Handle native scroll height update
     useEffect(() => {
-        if (isTouchDevice) return;
-
-        state.current.current = 0;
-        state.current.target = 0;
-        window.scrollTo(0, 0);
-        if (contentRef.current) {
-            contentRef.current.style.transform = 'translate3d(0, 0, 0)';
+        if (isTouchDevice) {
+            document.body.style.height = '';
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            return;
         }
-    }, [resetKey, isTouchDevice]);
 
-    useEffect(() => {
-        if (isTouchDevice) return;
-        
         const content = contentRef.current;
         if (!content) return;
 
-        const updateBodyHeight = () => {
-             if (content) document.body.style.height = `${content.scrollHeight}px`;
+        const updateHeight = () => {
+            if (content) {
+                const height = content.scrollHeight;
+                document.body.style.height = `${height}px`;
+            }
         };
-        
-        updateBodyHeight();
-        const resizeObserver = new ResizeObserver(() => updateBodyHeight());
-        resizeObserver.observe(content);
 
-        const onWheel = (e: WheelEvent) => {
-            e.preventDefault();
-            const speedFactor = 0.95; 
-            const maxScroll = document.body.scrollHeight - window.innerHeight;
-            
-            state.current.target += e.deltaY * speedFactor;
-            state.current.target = Math.max(0, Math.min(state.current.target, maxScroll));
+        // Aggressive height update to catch all layout shifts
+        const resizeObserver = new ResizeObserver(() => updateHeight());
+        resizeObserver.observe(content);
+        
+        // Polling height update as a safety measure for images loading
+        const interval = setInterval(updateHeight, 1000);
+        
+        updateHeight();
+        
+        return () => {
+            resizeObserver.disconnect();
+            clearInterval(interval);
+            document.body.style.height = '';
         };
+    }, [isTouchDevice, resetKey]);
+
+    // Interpolation loop
+    useEffect(() => {
+        if (isTouchDevice) return;
+
+        const content = contentRef.current;
+        if (!content) return;
 
         const loop = () => {
-            const ease = 0.12; 
-            const diff = state.current.target - state.current.current;
-            const delta = diff * ease;
+            // Target is the actual scroll position
+            state.current.target = window.scrollY;
 
-            if (Math.abs(diff) > 0.1) {
-                state.current.current += delta;
-                content.style.transform = `translate3d(0, -${state.current.current}px, 0)`;
-                // Sync the actual scroll position for things like scroll listeners
-                if (Math.abs(window.scrollY - state.current.current) > 1) {
-                     window.scrollTo({ top: state.current.current, behavior: 'auto' });
+            // Snap factor (0.15 is responsive)
+            const ease = 0.15; 
+            const diff = state.current.target - state.current.current;
+            
+            if (Math.abs(diff) > 0.01) {
+                state.current.current += diff * ease;
+                if (content) {
+                    content.style.transform = `translate3d(0, -${state.current.current}px, 0)`;
+                }
+            } else if (state.current.current !== state.current.target) {
+                state.current.current = state.current.target;
+                if (content) {
+                    content.style.transform = `translate3d(0, -${state.current.current}px, 0)`;
                 }
             }
 
             rafId.current = requestAnimationFrame(loop);
         };
 
-        window.addEventListener('wheel', onWheel, { passive: false });
         rafId.current = requestAnimationFrame(loop);
 
         return () => {
-            window.removeEventListener('wheel', onWheel);
             if (rafId.current) cancelAnimationFrame(rafId.current);
-            resizeObserver.disconnect();
-            document.body.style.height = '';
         };
     }, [isTouchDevice]);
 
+    // Fallback for mobile / touch devices
     if (isTouchDevice) {
-        // Return standard layout for mobile/touch devices to use native browser scrolling
         return <div className="w-full relative">{children}</div>;
     }
 
     return (
-        <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-            <div ref={contentRef} className="w-full pointer-events-auto will-change-transform">
-                {children}
+        <>
+            <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+                <div 
+                    ref={contentRef} 
+                    className="w-full pointer-events-auto will-change-transform"
+                >
+                    {children}
+                </div>
             </div>
-        </div>
+            {/* The actual scrollable area is defined by body height set in useEffect */}
+        </>
     );
 };
